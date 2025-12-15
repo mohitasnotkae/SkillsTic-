@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>skillsTic – No Draw Tic Tac Toe</title>
+
+<style>
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background: radial-gradient(circle at top,#3b0066,#12001f);
+  color:#fff;
+}
+
+/* HEADER */
+.header{
+  padding:15px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  background: linear-gradient(90deg,#4b0082,#2a003f);
+}
+.header h1{margin:0;font-size:22px;}
+.wallet{
+  background:#2b0140;
+  border:1px solid gold;
+  padding:6px 14px;
+  border-radius:20px;
+  color:gold;
+}
+
+/* LOBBY */
+.container{padding:15px;}
+.card{
+  border:1px solid #d4af37;
+  border-radius:15px;
+  padding:15px;
+  margin-bottom:15px;
+  background: linear-gradient(135deg,#2a003f,#3b0066);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.card .info{line-height:1.6;}
+.joinBtn{
+  background:#8e2de2;
+  border:none;
+  color:white;
+  padding:10px 18px;
+  border-radius:20px;
+  font-size:16px;
+}
+
+/* GAME */
+#gameScreen{display:none;text-align:center;}
+.timer{
+  font-size:20px;
+  margin-top:10px;
+  color:#ffcc00;
+}
+.board{
+  display:grid;
+  grid-template-columns:repeat(3,90px);
+  gap:10px;
+  justify-content:center;
+  margin-top:20px;
+}
+.cell{
+  width:90px;
+  height:90px;
+  background:white;
+  color:black;
+  font-size:40px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:10px;
+}
+.cell.win{
+  background:#00ffcc;
+  box-shadow:0 0 15px #00ffcc;
+}
+.status{
+  margin-top:15px;
+  font-size:18px;
+  white-space:pre-line;
+}
+.btnRow{
+  margin-top:20px;
+}
+.actionBtn{
+  background:#444;
+  color:white;
+  border:none;
+  padding:10px 18px;
+  border-radius:20px;
+  margin:5px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>skillsTic</h1>
+  <div class="wallet">₹ <span id="wallet">1000</span></div>
+</div>
+
+<div class="container" id="lobby"></div>
+
+<div id="gameScreen">
+  <h2>Tic Tac Toe</h2>
+  <div class="timer">⏱ Time Left: <span id="time">15</span>s</div>
+  <div class="board" id="board"></div>
+  <div class="status" id="status"></div>
+
+  <div class="btnRow">
+    <button class="actionBtn" onclick="restartGame()">Restart</button>
+    <button class="actionBtn" onclick="backToLobby()">Back to Lobby</button>
+  </div>
+</div>
+
+<script>
+/* ---------- SOUND ---------- */
+const audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+function beep(freq,dur){
+  const o=audioCtx.createOscillator();
+  const g=audioCtx.createGain();
+  o.connect(g); g.connect(audioCtx.destination);
+  o.frequency.value=freq;
+  g.gain.value=0.1;
+  o.start();
+  o.stop(audioCtx.currentTime+dur/1000);
+}
+
+/* ---------- WALLET ---------- */
+let wallet=1000;
+let gameStarted=false;
+let currentGame=null;
+
+/* ---------- TIMER ---------- */
+let timeLeft=15;
+let timer=null;
+
+/* ---------- LEVELS ---------- */
+const levels=[
+ {entry:19},{entry:29},{entry:49},{entry:79},{entry:99},
+ {entry:199},{entry:299},{entry:399},{entry:599},{entry:699}
+];
+
+/* ---------- PRIZE ---------- */
+function prize(entry,level){
+  const pool=entry*2;
+  if(level<=8){
+    const w=Math.round(pool*0.6842);
+    const l=Math.round(pool*0.2632);
+    return{win:w,lose:l,dev:pool-w-l};
+  }else{
+    const w=Math.round(pool*0.7153);
+    const l=Math.round(pool*0.2625);
+    return{win:w,lose:l,dev:pool-w-l};
+  }
+}
+
+/* ---------- LOBBY ---------- */
+function loadLobby(){
+  const lobby=document.getElementById("lobby");
+  lobby.innerHTML="";
+  levels.forEach((l,i)=>{
+    const p=prize(l.entry,i+1);
+    lobby.innerHTML+=`
+      <div class="card">
+        <div class="info">
+          🏆 Winner ₹${p.win}<br>
+          🛡 Loser ₹${p.lose}<br>
+          🤝 Dev ₹${p.dev}
+        </div>
+        <button class="joinBtn" onclick="joinGame(${i})">ENTRY ₹${l.entry}</button>
+      </div>`;
+  });
+}
+loadLobby();
+
+/* ---------- JOIN ---------- */
+function joinGame(i){
+  if(gameStarted) return;
+  if(wallet<levels[i].entry){alert("Not enough balance");return;}
+  wallet-=levels[i].entry;
+  updateWallet();
+  currentGame=prize(levels[i].entry,i+1);
+  startGame();
+}
+
+/* ---------- GAME ---------- */
+let board=Array(9).fill("");
+let player="X";
+let xMoves=[],oMoves=[];
+let gameOver=false;
+let winningCells=[];
+
+function startGame(){
+  gameStarted=true;
+  gameOver=false;
+  winningCells=[];
+  board.fill("");
+  xMoves=[]; oMoves=[];
+  player="X";
+  document.getElementById("lobby").style.display="none";
+  document.getElementById("gameScreen").style.display="block";
+  document.getElementById("board").style.pointerEvents="auto";
+  drawBoard();
+  setTurn();
+  startTimer();
+}
+
+function restartGame(){
+  if(gameStarted) return;
+  startGame();
+}
+
+function startTimer(){
+  clearInterval(timer);
+  timeLeft=15;
+  document.getElementById("time").innerText=timeLeft;
+  timer=setInterval(()=>{
+    timeLeft--;
+    document.getElementById("time").innerText=timeLeft;
+    if(timeLeft<=3&&timeLeft>0)beep(800,120);
+    if(timeLeft<=0){
+      clearInterval(timer);
+      endGame(player==="X"?"O":"X");
+    }
+  },1000);
+}
+
+function drawBoard(){
+  const b=document.getElementById("board");
+  b.innerHTML="";
+  board.forEach((v,i)=>{
+    const c=winningCells.includes(i)?"cell win":"cell";
+    b.innerHTML+=`<div class="${c}" onclick="play(${i})">${v}</div>`;
+  });
+}
+
+function setTurn(){
+  const s=document.getElementById("status");
+  s.innerText=player==="X"?"Your Turn (X)":"Opponent Turn (O)";
+  s.style.color=player==="X"?"#00ffcc":"#ff9f43";
+}
+
+function play(i){
+  if(gameOver||board[i]!="") return;
+  beep(500,80);
+
+  if(player==="X"){
+    if(xMoves.length===3) board[xMoves.shift()]="";
+    xMoves.push(i);
+  }else{
+    if(oMoves.length===3) board[oMoves.shift()]="";
+    oMoves.push(i);
+  }
+
+  board[i]=player;
+  drawBoard();
+
+  const winLine=checkWin();
+  if(winLine){
+    winningCells=winLine;
+    beep(1200,400);
+    endGame(player);
+    drawBoard();
+    return;
+  }
+
+  player=player==="X"?"O":"X";
+  setTurn();
+  startTimer();
+}
+
+function checkWin(){
+  const w=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+  for(const a of w) if(a.every(i=>board[i]===player)) return a;
+  return null;
+}
+
+function endGame(winner){
+  gameOver=true;
+  gameStarted=false;
+  clearInterval(timer);
+  document.getElementById("board").style.pointerEvents="none";
+
+  if(winner==="X") wallet+=currentGame.win;
+  else wallet+=currentGame.lose;
+  updateWallet();
+
+  const s=document.getElementById("status");
+  s.style.color="gold";
+  s.innerText=
+    "Game Over 🎉\n"+
+    winner+" Wins!\n"+
+    "Winner ₹"+currentGame.win+
+    " | Loser ₹"+currentGame.lose+
+    " | Dev ₹"+currentGame.dev;
+}
+
+function backToLobby(){
+  clearInterval(timer);
+  document.getElementById("gameScreen").style.display="none";
+  document.getElementById("lobby").style.display="block";
+}
+
+function updateWallet(){
+  document.getElementById("wallet").innerText=wallet;
+}
+</script>
+
+</body>
+</html>
