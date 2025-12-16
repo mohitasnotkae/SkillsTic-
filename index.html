@@ -6,6 +6,7 @@
 <title>skillsTic – No Draw Tic Tac Toe</title>
 
 <style>
+/* ===== GLOBAL ===== */
 body{
   margin:0;
   font-family: Arial, sans-serif;
@@ -13,7 +14,52 @@ body{
   color:#fff;
 }
 
-/* HEADER */
+/* ===== TERMS SCREEN ===== */
+#termsScreen{
+  position:fixed;
+  inset:0;
+  background: radial-gradient(circle at top,#2a003f,#12001f);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.termsBox{
+  max-width:420px;
+  background:linear-gradient(135deg,#2a003f,#3b0066);
+  border:1px solid gold;
+  border-radius:16px;
+  padding:20px;
+}
+.termsBox h2{
+  margin-top:0;
+  color:gold;
+  text-align:center;
+}
+.termsBox ul{
+  font-size:14px;
+  line-height:1.6;
+  padding-left:18px;
+}
+.termsBox label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:10px;
+  font-size:14px;
+}
+.termsBtn{
+  width:100%;
+  margin-top:15px;
+  padding:12px;
+  font-size:16px;
+  border:none;
+  border-radius:20px;
+  background:#8e2de2;
+  color:#fff;
+}
+
+/* ===== HEADER ===== */
 .header{
   padding:15px;
   display:flex;
@@ -30,7 +76,7 @@ body{
   color:gold;
 }
 
-/* LOBBY */
+/* ===== LOBBY ===== */
 .container{padding:15px;}
 .card{
   border:1px solid #d4af37;
@@ -52,7 +98,7 @@ body{
   font-size:16px;
 }
 
-/* GAME */
+/* ===== GAME ===== */
 #gameScreen{display:none;text-align:center;}
 .timer{
   font-size:20px;
@@ -102,6 +148,28 @@ body{
 
 <body>
 
+<!-- ===== TERMS PAGE ===== -->
+<div id="termsScreen">
+  <div class="termsBox">
+    <h2>Terms & Conditions</h2>
+    <ul>
+      <li>You must be <b>18 years or older</b>.</li>
+      <li>This is a <b>skill-based game</b>, not gambling.</li>
+      <li>Wallet shown is <b>demo / virtual</b>.</li>
+      <li>No refunds for unfinished games.</li>
+      <li>Developer decision is final.</li>
+    </ul>
+
+    <label>
+      <input type="checkbox" id="ageCheck">
+      I confirm that I am 18+ years old
+    </label>
+
+    <button class="termsBtn" onclick="acceptTerms()">Agree & Continue</button>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
 <div class="header">
   <h1>skillsTic</h1>
   <div class="wallet">₹ <span id="wallet">1000</span></div>
@@ -122,6 +190,24 @@ body{
 </div>
 
 <script>
+/* ===== TERMS LOGIC (NEW, SAFE) ===== */
+function acceptTerms(){
+  if(!document.getElementById("ageCheck").checked){
+    alert("You must confirm 18+");
+    return;
+  }
+  localStorage.setItem("skillsTic_termsAccepted","yes");
+  document.getElementById("termsScreen").style.display="none";
+}
+if(localStorage.getItem("skillsTic_termsAccepted")==="yes"){
+  document.getElementById("termsScreen").style.display="none";
+}
+
+/* ===============================
+   ===== YOUR ORIGINAL GAME LOGIC
+   ===== (UNCHANGED)
+   =============================== */
+
 /* ---------- SOUND ---------- */
 const audioCtx=new(window.AudioContext||window.webkitAudioContext)();
 function beep(freq,dur){
