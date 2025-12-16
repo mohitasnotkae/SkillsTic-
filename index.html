@@ -201,8 +201,21 @@ body{
 <!-- ===== APP ===== -->
 <div class="header">
   <h1>skillsTic</h1>
-  <div class="wallet">₹ <span id="wallet">1000</span></div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <div class="wallet">₹ <span id="wallet">1000</span></div>
+    <button onclick="logout()" style="
+      background:#b30000;
+      color:white;
+      border:none;
+      padding:6px 14px;
+      border-radius:16px;
+      cursor:pointer;
+    ">
+      Logout
+    </button>
+  </div>
 </div>
+
 
 <div class="container" id="lobby"></div>
 
@@ -454,6 +467,28 @@ function backToLobby(){
 function updateWallet(){
   document.getElementById("wallet").innerText=wallet;
 }
+/* ---------- LOGOUT ---------- */
+function logout(){
+  if(!confirm("Are you sure you want to logout?")) return;
+
+  // remove login status
+  localStorage.removeItem("skillsTic_loggedIn");
+
+  // stop any running game
+  gameStarted = false;
+  gameOver = true;
+  clearInterval(timer);
+
+  // hide game screen
+  document.getElementById("gameScreen").style.display = "none";
+
+  // show lobby
+  document.getElementById("lobby").style.display = "block";
+
+  // reload app (will show login again)
+  location.reload();
+}
+
 </script>
 
 </body>
