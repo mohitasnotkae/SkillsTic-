@@ -202,7 +202,21 @@ body{
 <div class="header">
   <h1>skillsTic</h1>
   <div style="display:flex;gap:10px;align-items:center;">
-    <div class="wallet">₹ <span id="wallet">1000</span></div>
+    <div style="display:flex;gap:10px;align-items:center;">
+  <div class="wallet">₹ <span id="wallet">0</span></div>
+
+  <button onclick="goDeposit()" style="
+    background:#00c853;
+    color:black;
+    border:none;
+    padding:6px 14px;
+    border-radius:16px;
+    font-weight:bold;
+    cursor:pointer;
+  ">
+    💰 Deposit
+  </button>
+</div>
     <button onclick="logout()" style="
       background:#b30000;
       color:white;
@@ -289,7 +303,24 @@ function beep(freq,dur){
 }
 
 /* ---------- WALLET ---------- */
-let wallet=1000;
+/* ---------- WALLET (LOCALSTORAGE CONNECTED) ---------- */
+let wallet = 0;
+
+// load wallet on app start
+function loadWallet(){
+  wallet = parseInt(localStorage.getItem("wallet")) || 0;
+  document.getElementById("wallet").innerText = wallet;
+}
+
+// save wallet every time it changes
+function saveWallet(){
+  localStorage.setItem("wallet", wallet);
+  document.getElementById("wallet").innerText = wallet;
+}
+
+// load wallet when page loads
+loadWallet();
+
 let gameStarted=false;
 let currentGame=null;
 
@@ -465,7 +496,7 @@ function backToLobby(){
 }
 
 function updateWallet(){
-  document.getElementById("wallet").innerText=wallet;
+  saveWallet();
 }
 /* ---------- LOGOUT ---------- */
 function logout(){
@@ -487,6 +518,9 @@ function logout(){
 
   // reload app (will show login again)
   location.reload();
+}
+function goDeposit(){
+  window.location.href = "deposit.html";
 }
 
 </script>
