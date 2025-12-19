@@ -216,6 +216,17 @@ body{
   ">
     💰 Deposit
   </button>
+  <button onclick="goWithdraw()" style="
+  background:#ff5252;
+  color:white;
+  border:none;
+  padding:6px 14px;
+  border-radius:16px;
+  font-weight:bold;
+  cursor:pointer;
+">
+  💸 Withdraw
+</button>
 </div>
     <button onclick="logout()" style="
       background:#b30000;
@@ -522,7 +533,9 @@ function logout(){
 function goDeposit(){
   window.location.href = "deposit.html";
 }
-
+function goWithdraw(){
+  window.location.href = "withdraw.html";
+}
 </script>
 
 </body>
