@@ -59,21 +59,68 @@ body{
   color:#fff;
 }
 
-/* ===== HEADER ===== */
-.header{
+/* ===== CLEAN WALLET HEADER FIX ===== */
+
+.topBar{
   padding:15px;
   display:flex;
   justify-content:space-between;
   align-items:center;
   background: linear-gradient(90deg,#4b0082,#2a003f);
 }
-.header h1{margin:0;font-size:22px;}
-.wallet{
+
+.logo{
+  font-size:22px;
+  font-weight:bold;
+}
+
+.walletBox{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.balance{
   background:#2b0140;
   border:1px solid gold;
   padding:6px 14px;
   border-radius:20px;
   color:gold;
+  font-weight:bold;
+}
+
+.depositBtn{
+  background:#00c853;
+  color:black;
+  border:none;
+  padding:8px 16px;
+  border-radius:18px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.secondaryActions{
+  display:flex;
+  justify-content:flex-end;
+  gap:12px;
+  padding:8px 15px;
+}
+
+.withdrawBtn{
+  background:transparent;
+  border:1px solid #ff5252;
+  color:#ff5252;
+  padding:6px 14px;
+  border-radius:16px;
+  cursor:pointer;
+}
+
+.logoutBtn{
+  background:none;
+  border:none;
+  color:#ff6b6b;
+  font-size:14px;
+  cursor:pointer;
 }
 
 /* ===== LOBBY ===== */
@@ -199,48 +246,20 @@ body{
 </div>
 
 <!-- ===== APP ===== -->
-<div class="header">
-  <h1>skillsTic</h1>
-  <div style="display:flex;gap:10px;align-items:center;">
-    <div style="display:flex;gap:10px;align-items:center;">
-  <div class="wallet">₹ <span id="wallet">0</span></div>
+<!-- ===== CLEAN HEADER ===== -->
+<div class="topBar">
+  <div class="logo">skillsTic</div>
 
-  <button onclick="goDeposit()" style="
-    background:#00c853;
-    color:black;
-    border:none;
-    padding:6px 14px;
-    border-radius:16px;
-    font-weight:bold;
-    cursor:pointer;
-  ">
-    💰 Deposit
-  </button>
-  <button onclick="goWithdraw()" style="
-  background:#ff5252;
-  color:white;
-  border:none;
-  padding:6px 14px;
-  border-radius:16px;
-  font-weight:bold;
-  cursor:pointer;
-">
-  💸 Withdraw
-</button>
-</div>
-    <button onclick="logout()" style="
-      background:#b30000;
-      color:white;
-      border:none;
-      padding:6px 14px;
-      border-radius:16px;
-      cursor:pointer;
-    ">
-      Logout
-    </button>
+  <div class="walletBox">
+    <div class="balance">₹ <span id="wallet">0</span></div>
+    <button class="depositBtn" onclick="goDeposit()">+ Deposit</button>
   </div>
 </div>
 
+<div class="secondaryActions">
+  <button class="withdrawBtn" onclick="goWithdraw()">Withdraw</button>
+  <button class="logoutBtn" onclick="logout()">Logout</button>
+</div>
 
 <div class="container" id="lobby"></div>
 
@@ -536,6 +555,7 @@ function goDeposit(){
 function goWithdraw(){
   window.location.href = "withdraw.html";
 }
+
 </script>
 
 </body>
