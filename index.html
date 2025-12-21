@@ -270,7 +270,34 @@ body{
   <button class="logoutBtn" onclick="logout()">Logout</button>
 </div>
 
-<div class="container" id="contestList"></div>
+<div class="container" id="contestList">
+
+  <div class="card">
+  <div class="info">
+    <b>Online PvP Match</b><br>
+    Entry: ₹49<br>
+    Real Player vs Real Player
+  </div>
+  <button class="joinBtn" onclick="
+    contestList.classList.add('hidden');
+    createRoom();
+  ">
+    Create Match
+  </button>
+</div>
+
+  <div class="card">
+    <div class="info">
+      <b>Join Match</b><br>
+      Enter Room ID
+    </div>
+    <input id="roomInput"
+      placeholder="ROOM ID"
+      style="padding:8px;border-radius:8px;border:none;">
+    <button class="joinBtn" onclick="joinRoom()">Join</button>
+  </div>
+
+</div>
 
 <div id="game" class="hidden">
   <h2>Tic Tac Toe</h2>
@@ -363,6 +390,12 @@ z-index:9999;
     </button>
   </div>
 </div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+<script>
+  const socket = io("https://skillstic.onrender.com");
+</script>
 
 <script src="script.js"></script>
 
