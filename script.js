@@ -17,6 +17,12 @@ let oMoves = [];
 let timer = null;
 let timeLeft = 15;
 
+/* ===== ONLINE PVP FLAGS ===== */
+let isOnlineMatch = false;
+let roomId = "";
+let mySymbol = "";
+let isMyTurn = false;
+
 /* ---------- SOUND ---------- */
 const clickSound = new Audio("click.mp3");
 const winSound = new Audio("win.mp3");
@@ -151,7 +157,9 @@ createBoard();
 
   contestList.classList.add("hidden");
   document.getElementById("game").classList.remove("hidden");
+  if(!isOnlineMatch){
   startTimer();
+}
 }
 
 /* ---------- PLAY ---------- */
@@ -187,7 +195,9 @@ clickSound.play();
 
   player = player === "X" ? "O" : "X";
   document.getElementById("turn").innerText = player + "'s Turn";
+  if(!isOnlineMatch){
   startTimer();
+}
 }
 
 /* ---------- CHECK WIN ---------- */
@@ -221,6 +231,7 @@ stopTimer();
     }
   });
 
+  if(!isOnlineMatch){
   if (winner === "X") {
     wallet += currentContest.payout.winner;
   } else {
@@ -229,6 +240,7 @@ stopTimer();
 
   walletEl.innerText = wallet;
   localStorage.setItem("wallet", wallet);
+}
 
   winSound.currentTime = 0;
   winSound.play();
@@ -258,8 +270,15 @@ popup.classList.remove("hidden");
 
 /* ---------- EXIT ---------- */
 function backToLobby(){
-stopTimer();
-  gameStarted = false; document.getElementById("game").classList.add("hidden");
+  stopTimer();
+
+  isOnlineMatch = false;
+  roomId = "";
+  mySymbol = "";
+  isMyTurn = false;
+
+  gameStarted = false;
+  document.getElementById("game").classList.add("hidden");
   contestList.classList.remove("hidden");
 }
 
@@ -293,11 +312,30 @@ function createBoard(){
   for(let i = 0; i < 9; i++){
     const cell = document.createElement("div");
     cell.className = "cell";
-    cell.onclick = () => play(i, cell);
+    cell.onclick = () => {
+  if(isOnlineMatch){
+    if(!isMyTurn) return;
+
+    isMyTurn = false;   // lock turn instantly
+
+socket.emit("makeMove",{
+  roomId: roomId,
+  index: i
+});
+
+  } else {
+    play(i, cell);
+  }
+};
+
     boardEl.appendChild(cell);
   }
 }
 function restartGame(){
+  if(isOnlineMatch){
+    alert("Restart disabled in Online Match");
+    return;
+  }
   if(!currentContest) return;
 stopTimer();
   gameStarted = true;
@@ -312,7 +350,9 @@ stopTimer();
   document.getElementById("turn").innerText = "Your Turn";
 
   createBoard();
+  if(!isOnlineMatch){
   startTimer();
+}
 }
 function startTimer(){
   clearInterval(timer);
@@ -333,7 +373,6 @@ function startTimer(){
     }
   }, 1000);
 }
-
 function stopTimer(){
   clearInterval(timer);
 }
@@ -341,3 +380,88 @@ function stopTimer(){
 function closeWinnerPopup(){
   document.getElementById("winnerPopup").classList.add("hidden");
 }
+/* ===== ONLINE MATCH ===== */
+function createRoom(){
+  if(localStorage.getItem("skillsTic_loggedIn") !== "yes"){
+    alert("Please login first");
+    return;
+  }
+  isOnlineMatch = true;
+  socket.emit("createRoom");
+}
+
+function joinRoom(){
+  const id = document.getElementById("roomInput").value;
+  if(!id){
+    alert("Enter Room ID");
+    return;
+  }
+  isOnlineMatch = true;
+  socket.emit("joinRoom",{ roomId:id });
+}
+/* ===== SOCKET EVENTS ===== */
+
+socket.on("roomCreated", data => {
+  roomId = data.roomId;
+  mySymbol = data.symbol;
+  isMyTurn = true;
+
+  gameStarted = true;
+  gameOver = false;
+
+  board = ["","","","","","","","",""];
+  createBoard();
+
+  contestList.classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+
+  alert("Room Created!\nShare this Room ID:\n" + roomId);
+});
+
+socket.on("gameStart", data => {
+  gameStarted = true;
+  gameOver = false;
+
+  isMyTurn = (data.turn === mySymbol);
+  document.getElementById("turn").innerText =
+    isMyTurn ? "Your Turn" : "Opponent Turn";
+});
+
+socket.on("moveUpdate", data => {
+  board = data.board;
+
+  document.querySelectorAll(".cell").forEach((c,i)=>{
+    c.innerText = board[i];
+  });
+
+  if(data.winner){
+  // server will send gameOver event
+  return;
+}
+
+
+  isMyTurn = (data.turn === mySymbol);
+  document.getElementById("turn").innerText =
+    isMyTurn ? "Your Turn" : "Opponent Turn";
+});
+
+
+socket.on("timerUpdate", time => {
+  document.getElementById("time").innerText = time;
+});
+
+socket.on("gameOver", data => {
+  gameOver = true;
+isOnlineMatch = false;
+isMyTurn = false;
+document.getElementById("turn").innerText = "Game Over";
+ document.getElementById("winnerTitle").innerText =
+    data.winner === mySymbol ? "🎉 YOU WON 🎉" : "😔 YOU LOST 😔";
+
+  document.getElementById("winnerDetails").innerText =
+`Winner Amount: ₹${data.payout.winner}
+Loser Amount: ₹${data.payout.loser}
+GST: ₹${data.payout.gst}`;
+
+  document.getElementById("winnerPopup").classList.remove("hidden");
+});
