@@ -285,6 +285,17 @@ body{
     Create Match
   </button>
 </div>
+<div class="card">
+  <div class="info">
+    <b>🏆 Grand League</b><br>
+    Entry: ₹36<br>
+    Prize Pool: ₹25.92 Lakh<br>
+    🥇 Top Win: 36%
+  </div>
+  <button class="joinBtn" onclick="joinGrandLeague()">
+    Join Contest
+  </button>
+</div>
 
   <div class="card">
     <div class="info">
@@ -349,6 +360,116 @@ function verifyOTP(){
   }
   localStorage.setItem("skillsTic_loggedIn","yes");
   document.getElementById("loginScreen").style.display="none";
+}
+/* ===== GRAND LEAGUE CONFIG ===== */
+
+const grandLeague = {
+  entryFee: 36,
+  maxPlayers: 100000,
+  joined: 0,
+  startTime: "20:00",
+  endTime: "22:00",
+  matchesPerUser: 10,
+  isLive: false,
+  prizePool: 2592000, // 25.92 lakh
+  topWinPercent: 36
+};
+
+let glMatchesLeft = 0;
+let glPoints = 0;
+function joinGrandLeague(){
+  if(wallet < grandLeague.entryFee){
+    alert("Not enough balance");
+    return;
+  }
+
+  wallet -= grandLeague.entryFee;
+  updateWallet();
+
+  grandLeague.joined++;
+  localStorage.setItem("joinedGL","yes");
+
+  alert(
+    "Joined Grand League!\n" +
+    "Starts at 8:00 PM\n" +
+    "Matches: " + grandLeague.matchesPerUser
+  );
+}
+// ===== AUTO START & END GRAND LEAGUE =====
+setInterval(()=>{
+  const now = new Date();
+  const time =
+    String(now.getHours()).padStart(2,"0") + ":" +
+    String(now.getMinutes()).padStart(2,"0");
+
+  if(time === grandLeague.startTime && !grandLeague.isLive){
+    startGrandLeague();
+  }
+
+  if(time === grandLeague.endTime && grandLeague.isLive){
+    endGrandLeague();
+  }
+}, 30000);
+function startGrandLeague(){
+  if(localStorage.getItem("joinedGL") !== "yes") return;
+
+  grandLeague.isLive = true;
+  glMatchesLeft = grandLeague.matchesPerUser;
+  glPoints = 0;
+
+  document.getElementById("contestList").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+
+  startGame(); // function already exists in script.js
+}
+function onGrandLeagueMatchEnd(result, timeLeft){
+  if(!grandLeague.isLive) return;
+
+  if(result === "win"){
+    glPoints += 10;
+    if(timeLeft > 10) glPoints += 5;
+  }
+
+  glMatchesLeft--;
+
+  if(glMatchesLeft > 0){
+    startGame();
+  }else{
+    saveGrandLeagueScore();
+  }
+}
+
+function saveGrandLeagueScore(){
+  let scores = JSON.parse(localStorage.getItem("glScores")) || [];
+
+  scores.push({
+    user: "player",
+    score: glPoints
+  });
+
+  localStorage.setItem("glScores", JSON.stringify(scores));
+
+  alert(
+    "Grand League Matches Finished\n" +
+    "Your Score: " + glPoints
+  );
+}
+
+function endGrandLeague(){
+  grandLeague.isLive = false;
+
+  let scores = JSON.parse(localStorage.getItem("glScores")) || [];
+  scores.sort((a,b)=>b.score-a.score);
+
+  const topPrize =
+    Math.floor(grandLeague.prizePool * (grandLeague.topWinPercent / 100));
+
+  alert(
+    "🏆 Grand League Ended\n" +
+    "Rank 1 Prize: ₹" + topPrize
+  );
+
+  localStorage.removeItem("joinedGL");
 }
 
 </script>
