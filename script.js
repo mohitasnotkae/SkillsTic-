@@ -14,9 +14,28 @@ let player = "X";
 let xMoves = [];
 let oMoves = [];
 
+let timer = null;
+let timeLeft = 15;
+
 /* ---------- SOUND ---------- */
 const clickSound = new Audio("click.mp3");
 const winSound = new Audio("win.mp3");
+
+clickSound.preload = "auto";
+winSound.preload = "auto";
+
+/* ---------- AUDIO UNLOCK (MOBILE FIX) ---------- */
+document.body.addEventListener("click", () => {
+  clickSound.play().then(() => {
+    clickSound.pause();
+    clickSound.currentTime = 0;
+  }).catch(()=>{});
+
+  winSound.play().then(() => {
+    winSound.pause();
+    winSound.currentTime = 0;
+  }).catch(()=>{});
+}, { once: true });
 
 /* ---------- PAYOUT CALCULATOR ---------- */
 function calculatePayout(entry, type) {
@@ -132,6 +151,7 @@ createBoard();
 
   contestList.classList.add("hidden");
   document.getElementById("game").classList.remove("hidden");
+  startTimer();
 }
 
 /* ---------- PLAY ---------- */
@@ -167,6 +187,7 @@ clickSound.play();
 
   player = player === "X" ? "O" : "X";
   document.getElementById("turn").innerText = player + "'s Turn";
+  startTimer();
 }
 
 /* ---------- CHECK WIN ---------- */
@@ -181,6 +202,8 @@ function checkWin(){
 
 /* ---------- FINISH GAME ---------- */
 function finishGame(winner){
+stopTimer();
+
   gameOver = true;
   gameStarted = false;
 
@@ -219,6 +242,7 @@ GST ₹${currentContest.payout.gst}`;
 
 /* ---------- EXIT ---------- */
 function backToLobby(){
+stopTimer();
   gameStarted = false; document.getElementById("game").classList.add("hidden");
   contestList.classList.remove("hidden");
 }
@@ -259,7 +283,7 @@ function createBoard(){
 }
 function restartGame(){
   if(!currentContest) return;
-
+stopTimer();
   gameStarted = true;
   gameOver = false;
   player = "X";
@@ -272,4 +296,28 @@ function restartGame(){
   document.getElementById("turn").innerText = "Your Turn";
 
   createBoard();
+  startTimer();
+}
+function startTimer(){
+  clearInterval(timer);
+  timeLeft = 15;
+  document.getElementById("time").innerText = timeLeft;
+
+  timer = setInterval(() => {
+    timeLeft--;
+    document.getElementById("time").innerText = timeLeft;
+
+    if(timeLeft === 5){
+      // optional warning sound later
+    }
+
+    if(timeLeft <= 0){
+      clearInterval(timer);
+      finishGame(player === "X" ? "O" : "X");
+    }
+  }, 1000);
+}
+
+function stopTimer(){
+  clearInterval(timer);
 }
