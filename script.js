@@ -238,6 +238,22 @@ stopTimer();
 Winner ₹${currentContest.payout.winner}
 Loser ₹${currentContest.payout.loser}
 GST ₹${currentContest.payout.gst}`;
+
+// ===== SHOW WINNER POPUP =====
+
+const popup = document.getElementById("winnerPopup");
+const title = document.getElementById("winnerTitle");
+const details = document.getElementById("winnerDetails");
+
+title.innerText = winner === "X" ? "🎉 YOU WON 🎉" : "😔 YOU LOST 😔";
+
+details.innerText =
+`Winner: ${winner}
+Winner Amount: ₹${currentContest.payout.winner}
+Loser Amount: ₹${currentContest.payout.loser}
+GST: ₹${currentContest.payout.gst}`;
+
+popup.classList.remove("hidden");
 }
 
 /* ---------- EXIT ---------- */
@@ -320,4 +336,8 @@ function startTimer(){
 
 function stopTimer(){
   clearInterval(timer);
+}
+/* ---------- WINNER POPUP CLOSE ---------- */
+function closeWinnerPopup(){
+  document.getElementById("winnerPopup").classList.add("hidden");
 }
