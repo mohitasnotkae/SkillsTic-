@@ -231,11 +231,18 @@ stopTimer();
     }
   });
 
-  if(!isOnlineMatch){
+ if(!isOnlineMatch){
   if (winner === "X") {
     wallet += currentContest.payout.winner;
+
+    // ✅ GRAND LEAGUE WIN
+    onGrandLeagueMatchEnd("win", timeLeft);
+
   } else {
     wallet += currentContest.payout.loser;
+
+    // ✅ GRAND LEAGUE LOSE
+    onGrandLeagueMatchEnd("lose", timeLeft);
   }
 
   walletEl.innerText = wallet;
