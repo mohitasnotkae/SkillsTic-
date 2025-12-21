@@ -148,7 +148,9 @@ body{
 }
 
 /* ===== GAME ===== */
-#gameScreen{display:none;text-align:center;}
+#game{
+  text-align:center;
+}
 
 /* ===== HIDE UTILITY ===== */
 .hidden{
@@ -272,6 +274,7 @@ body{
 
 <div id="game" class="hidden">
   <h2>Tic Tac Toe</h2>
+<div id="turn" style="margin-top:8px;color:#ffcc00;">Your Turn</div>
   <div class="timer">⏱ Time Left: <span id="time">15</span>s</div>
   <div class="board" id="board"></div>
   <div class="status" id="status"></div>
