@@ -13,6 +13,11 @@ let board = ["","","","","","","","",""];
 let player = "X";
 let xMoves = [];
 let oMoves = [];
+
+/* ---------- SOUND ---------- */
+const clickSound = new Audio("click.mp3");
+const winSound = new Audio("win.mp3");
+
 /* ---------- PAYOUT CALCULATOR ---------- */
 function calculatePayout(entry, type) {
   const total = entry * 2;
@@ -152,6 +157,8 @@ function play(i, el){
 
   board[i] = player;
   el.innerText = player;
+clickSound.currentTime = 0;
+clickSound.play();
 
   if(checkWin()){
     finishGame(player);
@@ -177,26 +184,42 @@ function finishGame(winner){
   gameOver = true;
   gameStarted = false;
 
-  /* 💸 PAYOUT */
+  const wins = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  wins.forEach(w=>{
+    if(w.every(i => board[i] === winner)){
+      w.forEach(i=>{
+        document.querySelectorAll(".cell")[i].classList.add("win");
+      });
+    }
+  });
+
   if (winner === "X") {
-  wallet += currentContest.payout.winner;
-} else {
-  wallet += currentContest.payout.loser;
-}
+    wallet += currentContest.payout.winner;
+  } else {
+    wallet += currentContest.payout.loser;
+  }
+
   walletEl.innerText = wallet;
   localStorage.setItem("wallet", wallet);
 
+  winSound.currentTime = 0;
+  winSound.play();
+
   document.getElementById("status").innerText =
-    `${winner} WINS!
+`${winner} WINS!
 Winner ₹${currentContest.payout.winner}
 Loser ₹${currentContest.payout.loser}
 GST ₹${currentContest.payout.gst}`;
 }
 
 /* ---------- EXIT ---------- */
-function exitGame(){
-  gameStarted = false;
-  document.getElementById("game").classList.add("hidden");
+function backToLobby(){
+  gameStarted = false; document.getElementById("game").classList.add("hidden");
   contestList.classList.remove("hidden");
 }
 
@@ -217,8 +240,7 @@ function logout(){
 
   gameStarted = false;
   gameOver = true;
-
-  document.getElementById("game").classList.add("hidden");
+ document.getElementById("game").classList.add("hidden");
   contestList.classList.remove("hidden");
 
   location.reload();
@@ -234,4 +256,20 @@ function createBoard(){
     cell.onclick = () => play(i, cell);
     boardEl.appendChild(cell);
   }
+}
+function restartGame(){
+  if(!currentContest) return;
+
+  gameStarted = true;
+  gameOver = false;
+  player = "X";
+
+  board = ["","","","","","","","",""];
+  xMoves = [];
+  oMoves = [];
+
+  document.getElementById("status").innerText = "";
+  document.getElementById("turn").innerText = "Your Turn";
+
+  createBoard();
 }
