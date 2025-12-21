@@ -199,13 +199,11 @@ function exitGame(){
 /* ===== HEADER BUTTON FUNCTIONS ===== */
 
 function goDeposit(){
-  alert("Deposit page (demo)");
-  // window.location.href = "deposit.html";
+  window.location.href = "deposit.html";
 }
 
 function goWithdraw(){
-  alert("Withdraw page (demo)");
-  // window.location.href = "withdraw.html";
+  window.location.href = "withdraw.html";
 }
 
 function logout(){
