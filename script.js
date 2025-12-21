@@ -114,10 +114,11 @@ function startGame(i){
   player = "X";
 
   board.fill("");
-  xMoves = [];
-  oMoves = [];
+xMoves = [];
+oMoves = [];
 
-  document.querySelectorAll(".cell").forEach(cell => cell.innerText = "");
+createBoard();
+
   document.getElementById("status").innerText = "";
   document.getElementById("turn").innerText = "Your Turn";
 
@@ -218,4 +219,16 @@ function logout(){
   contestList.classList.remove("hidden");
 
   location.reload();
+}
+/* ---------- CREATE BOARD ---------- */
+function createBoard(){
+  const boardEl = document.getElementById("board");
+  boardEl.innerHTML = "";
+
+  for(let i = 0; i < 9; i++){
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.onclick = () => play(i, cell);
+    boardEl.appendChild(cell);
+  }
 }
