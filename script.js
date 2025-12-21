@@ -55,6 +55,9 @@ document.addEventListener("DOMContentLoaded", () => {
   wallet = parseInt(localStorage.getItem("wallet")) || 0;
   walletEl.innerText = wallet;
   loadContests();
+
+  // SAFETY: ensure board exists when game opens
+  createBoard();
 });
 
 /* ---------- LOAD LOBBY ---------- */
