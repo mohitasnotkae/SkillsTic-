@@ -1,8 +1,9 @@
 /* ===============================
    SKILLSTIC – GAME SCRIPT
-   CORE LOGIC UNCHANGED
+   CORE LOGIC (UPDATED WALLET)
    =============================== */
 
+/* ---------- GLOBAL ---------- */
 let wallet = 1000;
 let gameStarted = false;
 let gameOver = false;
@@ -12,39 +13,73 @@ let board = ["","","","","","","","",""];
 let player = "X";
 let xMoves = [];
 let oMoves = [];
+/* ---------- PAYOUT CALCULATOR ---------- */
+function calculatePayout(entry, type) {
+  const total = entry * 2;
+  const gst = Math.floor(total * 0.28);
+
+  let winner = 0;
+  let loser = 0;
+
+  if (type === "onlyWinner") {
+    winner = Math.floor(total * 0.72);
+  }
+
+  if (type === "winnerLoser") {
+    winner = Math.floor(total * 0.62);
+    loser = Math.floor(total * 0.10);
+  }
+
+  return { winner, loser, gst };
+}
 
 /* ---------- CONTESTS ---------- */
 const contests = [
-  {entry:19,  winner:26,  loser:10,  dev:2},
-  {entry:50,  winner:100, loser:20,  dev:5},
-  {entry:99,  winner:135, loser:52,  dev:10},
-  {entry:199, winner:272, loser:105, dev:21},
-  {entry:399, winner:546, loser:210, dev:42},
-  {entry:699, winner:1000,loser:367, dev:31}
+  { entry: 49,  type: "onlyWinner" },
+  { entry: 99,  type: "onlyWinner" },
+  { entry: 199, type: "onlyWinner" },
+  { entry: 299, type: "winnerLoser" },
+  { entry: 399, type: "winnerLoser" },
+  { entry: 499, type: "winnerLoser" },
+  { entry: 699, type: "winnerLoser" },
+  { entry: 799, type: "winnerLoser" },
+  { entry: 899, type: "winnerLoser" },
+  { entry: 1000,type: "winnerLoser" }
 ];
 
 const contestList = document.getElementById("contestList");
 const walletEl = document.getElementById("wallet");
 
+/* ---------- LOAD WALLET AFTER PAGE LOAD ---------- */
+document.addEventListener("DOMContentLoaded", () => {
+  wallet = parseInt(localStorage.getItem("wallet")) || 0;
+  walletEl.innerText = wallet;
+  loadContests();
+});
+
 /* ---------- LOAD LOBBY ---------- */
 function loadContests(){
   contestList.innerHTML = "";
-  contests.forEach((c,i)=>{
+
+  contests.forEach((c, i) => {
+    const payout = calculatePayout(c.entry, c.type);
+
     contestList.innerHTML += `
-      <div class="contest">
-        <div>
-          🏆 Winner ₹${c.winner}<br>
-          🛡 Loser ₹${c.loser}<br>
-          🤝 Dev ₹${c.dev}
-        </div>
-        <button class="join" onclick="startGame(${i})">
-          ENTRY ₹${c.entry}
-        </button>
+      <div class="card">
+        <div class="info">
+  🏆 Winner <b>₹${payout.winner}</b><br>
+  🛡 Loser <b>₹${payout.loser === 0 ? "—" : payout.loser}</b><br>
+  🏛 GST <b>₹${payout.gst}</b>
+</div>
+
+<button class="joinBtn" onclick="startGame(${i})">
+  ENTRY ₹${c.entry}
+</button>
+
       </div>
     `;
   });
 }
-loadContests();
 
 /* ---------- START GAME ---------- */
 function startGame(i){
@@ -65,11 +100,15 @@ function startGame(i){
     return;
   }
 
-  /* 💳 DEDUCT ONCE */
+  /* 💳 DEDUCT ENTRY (ONCE) */
   wallet -= c.entry;
   walletEl.innerText = wallet;
+  localStorage.setItem("wallet", wallet);
 
-  currentContest = c;
+  currentContest = {
+  ...c,
+  payout: calculatePayout(c.entry, c.type)
+};
   gameStarted = true;
   gameOver = false;
   player = "X";
@@ -134,17 +173,20 @@ function finishGame(winner){
   gameOver = true;
   gameStarted = false;
 
-  /* 💸 CORRECT PAYOUT */
-  if(winner === "X"){
-    wallet += currentContest.winner;
-  } else {
-    wallet += currentContest.loser;
-  }
-
+  /* 💸 PAYOUT */
+  if (winner === "X") {
+  wallet += currentContest.payout.winner;
+} else {
+  wallet += currentContest.payout.loser;
+}
   walletEl.innerText = wallet;
+  localStorage.setItem("wallet", wallet);
 
   document.getElementById("status").innerText =
-    `${winner} WINS!\nWinner ₹${currentContest.winner} | Loser ₹${currentContest.loser} | Dev ₹${currentContest.dev}`;
+    `${winner} WINS!
+Winner ₹${currentContest.payout.winner}
+Loser ₹${currentContest.payout.loser}
+GST ₹${currentContest.payout.gst}`;
 }
 
 /* ---------- EXIT ---------- */
@@ -152,4 +194,30 @@ function exitGame(){
   gameStarted = false;
   document.getElementById("game").classList.add("hidden");
   contestList.classList.remove("hidden");
+}
+
+/* ===== HEADER BUTTON FUNCTIONS ===== */
+
+function goDeposit(){
+  alert("Deposit page (demo)");
+  // window.location.href = "deposit.html";
+}
+
+function goWithdraw(){
+  alert("Withdraw page (demo)");
+  // window.location.href = "withdraw.html";
+}
+
+function logout(){
+  if(!confirm("Are you sure you want to logout?")) return;
+
+  localStorage.removeItem("skillsTic_loggedIn");
+
+  gameStarted = false;
+  gameOver = true;
+
+  document.getElementById("game").classList.add("hidden");
+  contestList.classList.remove("hidden");
+
+  location.reload();
 }
